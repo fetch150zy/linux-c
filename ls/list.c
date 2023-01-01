@@ -1,65 +1,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <pwd.h> // struct passwd
 #include <grp.h> // struct group
 #include <time.h>
 
-typedef unsigned char byte;
-
-// int stat(const char *pathname, struct stat *buf);
-// int lstat(const char *pathname, struct stat *buf);
-
-
-char get_type(const char *file_name);
-char* get_mod(const char *file_name);
-char *get_ower(const char *file_name);
-char *get_grp(const char *file_name);
-u_int32_t get_file_size(const char *file_name);
-char *get_time(const char *file_name);
+#include "list.h"
 
 
 static char *uid_to_name(uid_t uid);
 static char *gid_to_name(gid_t gid);
-
-
-int main(int argc, char **argv)
-{
-    if (argc < 2) {
-        printf("usage: ./stat filename\n");
-        return -1;
-    }
-    const char *file_name = argv[1];
-
-    char file_type = get_type(file_name);
-    printf("%c", file_type);
-
-    char *file_mod = get_mod(file_name);
-    printf("%s ", file_mod);
-
-    char *ower = get_ower(file_name);
-    printf("%s", ower);
-
-    char *grp = get_grp(file_name);
-    printf(" %s ", grp);
-
-    u_int32_t fsize = get_file_size(file_name);
-    printf("%.1lf KB", (fsize / 1024.0));
-
-    char *format = get_time(file_name);
-    printf(" %s", format);
-
-    printf(" %s\n", file_name);
-
-    free(format);
-    format = NULL;
-    free(file_mod);
-    file_mod = NULL;
-
-    return 0;
-}
 
 
 char get_type(const char *file_name)
