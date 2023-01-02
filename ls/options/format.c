@@ -8,10 +8,10 @@
 
 void format(char **file_list, const char *full_path,
                               char **fmt_files,
-                              byte cnt)
+                              int cnt)
 {
     char *realp = realpath(full_path, NULL);
-    for (byte i = 0; i < cnt; ++i) {
+    for (int i = 0; i < cnt; ++i) {
         char tmp[100];
         strcpy(tmp, realp);
         strcat(tmp, "/");

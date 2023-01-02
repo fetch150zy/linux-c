@@ -11,14 +11,33 @@
 #include <stdbool.h>
 
 #include "long.h"
-#include "../alias.h"
 
 
 static char *uid_to_name(uid_t uid);
 static char *gid_to_name(gid_t gid);
 
+void get_lens_of_ower_and_grp(char *fullpath, char **file_list, int cnt, int *fmt_lens)
+{
+    for (int i = 0; i < cnt; ++i) {
+        char tmp[100];
+        strcpy(tmp, fullpath);
+        strcat(tmp, file_list[i]);
+        char *ower = get_ower(tmp);
+        if (fmt_lens[0] < strlen(ower))
+            fmt_lens[0] = strlen(ower);
+        char *grp = get_grp(tmp);
+        if (fmt_lens[1] < strlen(grp))
+            fmt_lens[1] = strlen(grp);
+        unsigned long fsize = get_file_size(tmp) / 1024;
+        char f[16];
+        sprintf(f, "%d", fsize);
+        if (fmt_lens[2] < strlen(f))
+            fmt_lens[2] = strlen(f);
+    }
+}
+
 void long_list(const char *full_path, bool *color_file,
-                                      char *fmt_file)
+                                      char *fmt_file, int *fmt_lens)
 {
     char file_type = get_type(full_path);
     printf("\033[38;5;7m");
@@ -45,19 +64,22 @@ void long_list(const char *full_path, bool *color_file,
 
     char *ower = get_ower(full_path);
     printf("\033[38;5;7m");
-    printf("%s", ower);
+    printf(" %-*s ", fmt_lens[0], ower);
 
     char *grp = get_grp(full_path);
     printf("\033[38;5;239m");
-    printf(" %s ", grp);
+    printf(" %-*s ", fmt_lens[1], grp);
 
-    u_int32_t fsize = get_file_size(full_path);
+    unsigned long fsize = get_file_size(full_path);
     printf("\033[38;5;228m");
-    printf("%.1lf KB", (fsize / 1024.0));
+    if (0 == fsize / 1024)
+        printf(" %*ld KB ", fmt_lens[2] + 2, (fsize / 1024));
+    else
+        printf(" %*.1lf KB ", fmt_lens[2] + 2, (fsize / 1024.0));
 
     char *format = get_time(full_path);
     printf("\033[38;5;123m");
-    printf(" %s", format);
+    printf(" %s ", format);
 
     // 拿到路径最后文件名
     char split_ch = '/';
@@ -67,7 +89,7 @@ void long_list(const char *full_path, bool *color_file,
     else if (color_file[1]) // 管道
         printf("\033[38;5;166m");
     else if (color_file[2]) // 软链接
-        printf("\033[38;5;14m");
+        printf("\033[38;5;196m");
     else if (color_file[3]) // 可执行文件
         printf("\033[38;5;118m");
     else
@@ -134,7 +156,7 @@ char* get_mod(const char *full_path)
         perror("stat");
         return NULL;
     }
-    const byte mode_size = 10;
+    const int mode_size = 10;
     char *file_mod = (char *)malloc(sizeof(char) * mode_size);
     const char mode[] = "rwx";
     int t = 0000400, st_mode = myst.st_mode;
@@ -177,7 +199,7 @@ char *get_grp(const char *full_path)
 }
 
 // 获取文件或目录大小
-unsigned int get_file_size(const char *full_path)
+unsigned long get_file_size(const char *full_path)
 {
     struct stat myst;
     int ret = stat(full_path, &myst);
@@ -185,7 +207,7 @@ unsigned int get_file_size(const char *full_path)
         perror("stat");
         return -1;
     }
-    return (u_int32_t)myst.st_size;
+    return myst.st_size;
 }
 
 // 获取文件或目录最后修改时间
@@ -203,7 +225,7 @@ char *get_time(const char *full_path)
                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     time_t t = myst.st_ctime;
     struct tm *p = localtime(&t);
-    const byte time_fmt_buf_size = 30;
+    const int time_fmt_buf_size = 30;
     char *format = (char *)malloc(sizeof(char) * time_fmt_buf_size);
     sprintf(format, "%s %s %#2d %02d:%02d:%02d %d", 
             wday[p->tm_wday], ymoth[(p->tm_mon)], p->tm_mday,

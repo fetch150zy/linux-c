@@ -11,9 +11,9 @@
 
 extern int errno;
 
-typedef unsigned char byte;
+typedef unsigned char int;
 
-char **dir(const char *path, const char *args, byte *cnt);
+char **dir(const char *path, const char *args, int *cnt);
 
 int main(int argc, char **argv)
 {
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
     const char *path = argv[1];
     char **file_list = NULL;
-    byte cnt = 0;
+    int cnt = 0;
     if (argc == 2) {
         file_list = dir(path, NULL, &cnt);
     } else {
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-char **dir(const char *path, const char *args, byte *cnt)
+char **dir(const char *path, const char *args, int *cnt)
 {
     DIR *dir = opendir(path);
     if (NULL == dir) {
@@ -53,15 +53,15 @@ char **dir(const char *path, const char *args, byte *cnt)
         assert(0);
     }
 
-    const byte file_list_size = 255;
-    const byte file_name_length = 20;
-    char **file_list = (char **)malloc(sizeof(char *) * file_list_size);
+    const int FILE_LIST_SIZE = 255;
+    const int FILE_NAME_LENGTH = 20;
+    char **file_list = (char **)malloc(sizeof(char *) * FILE_LIST_SIZE);
 
-    byte i = 0;
+    int i = 0;
     if (NULL != args && strcmp("-a", args) == 0) {
-        file_list[i] = (char *)malloc(sizeof(char) * file_name_length);
+        file_list[i] = (char *)malloc(sizeof(char) * FILE_NAME_LENGTH);
         strcpy(file_list[i++], ".");
-        file_list[i] = (char *)malloc(sizeof(char) * file_name_length);
+        file_list[i] = (char *)malloc(sizeof(char) * FILE_NAME_LENGTH);
         strcpy(file_list[i++], "..");
         (*cnt) += 2;
     }
@@ -69,7 +69,7 @@ char **dir(const char *path, const char *args, byte *cnt)
     struct dirent *d = NULL;
     while ((d = readdir(dir)) != NULL) {
         if ('.' != d->d_name[0]) {
-            file_list[i] = (char *)malloc(sizeof(char) * file_name_length);
+            file_list[i] = (char *)malloc(sizeof(char) * FILE_NAME_LENGTH);
             strcpy(file_list[i++], d->d_name);
             ++(*cnt);
         }

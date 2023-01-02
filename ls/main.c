@@ -10,10 +10,10 @@
 int main(int argc, char **argv)
 {
     // 存 path 和 options
-    char **path = (char **)malloc(sizeof(char *) * path_num);
-    char **ops = (char **)malloc(sizeof(char *) * op_num);
+    char **path = (char **)malloc(sizeof(char *) * PATH_NUM);
+    char **ops = (char **)malloc(sizeof(char *) * OP_NUM);
     // path 和 options 的数目
-    byte pcnt = 0, ocnt = 0;
+    int pcnt = 0, ocnt = 0;
     // (0:-a) (1:-A) (2:-l) (3:-f) (4:-t) (5:-h) (6:invalid)
     bool has_ops[7] = {false, false, false,
                               false, false, false, false};

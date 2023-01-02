@@ -7,7 +7,7 @@
 #include <grp.h> // struct group
 #include <time.h>
 
-typedef unsigned char byte;
+typedef unsigned char int;
 
 // int stat(const char *pathname, struct stat *buf);
 // int lstat(const char *pathname, struct stat *buf);
@@ -100,7 +100,7 @@ char* get_mod(const char *file_name)
         perror("stat");
         return NULL;
     }
-    const byte mode_size = 10;
+    const int mode_size = 10;
     char *file_mod = (char *)malloc(sizeof(char) * mode_size);
     const char mode[] = "rwx";
     int t = 0000400, st_mode = myst.st_mode;
@@ -165,7 +165,7 @@ char *get_time(const char *file_name)
                             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     time_t t = time(NULL); // 1970.1.1
     struct tm *p = localtime(&t);
-    const byte time_fmt_buf_size = 30;
+    const int time_fmt_buf_size = 30;
     char *format = (char *)malloc(sizeof(char) * time_fmt_buf_size);
     sprintf(format, "%s %s %#2d %02d:%02d:%02d %d", 
             wday[p->tm_wday], ymoth[(p->tm_mon)], p->tm_mday,

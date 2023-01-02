@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-typedef unsigned char byte;
+typedef unsigned char int;
 
 int copy_file(const char *src_file, const char *dest_file);
 
@@ -40,7 +40,7 @@ int copy_file(const char *src_file, const char *dest_file)
 
     // 拷贝数据
     const size_t buf_size = 4096;
-    byte buf[buf_size];
+    int buf[buf_size];
     size_t size = -1;
     while ((size = read(src_fd, buf, buf_size)) > 0)
         write(dest_fd, buf, size);

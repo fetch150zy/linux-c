@@ -11,7 +11,7 @@
 extern int errno;
 
 
-typedef unsigned char byte;
+typedef unsigned char int;
 
 #define buf_size 4096
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     int fd = open_file(file_name, mode);
 
     // 读写测试
-    byte buf[buf_size] = "hello linux.";
+    int buf[buf_size] = "hello linux.";
     ssize_t size = write_file(fd, buf);
     size = read_file(fd, buf);
     printf("%s\n", buf);

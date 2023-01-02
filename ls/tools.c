@@ -14,24 +14,24 @@
 #include "macro.h"
 #include "tools.h"
 
-static bool **color_file(char **file_list, const char *full_path, byte cnt);
+static bool **color_file(char **file_list, const char *full_path, int cnt);
 
 // 处理命令行参数
 void anlz_args(int argc, char **argv,
                          char **path,
                          char **ops,
-                         byte *pcnt, byte *ocnt,
+                         int *pcnt, int *ocnt,
                          bool *has_ops)
 {
     // 有传参或者有传入操作符
     if (argc > 1) {
         // 解析参数和操作符（参数和操作符位置无硬性要求）
         for (int i = 1; i < argc; ++i) {
-            if ('-' != argv[i][0]) {
-                path[(*pcnt)] = (char *)malloc(sizeof(char) * path_max_len);
+            if ('-' != argv[i][0]) { // 参数
+                path[(*pcnt)] = (char *)malloc(sizeof(char) * PATH_MAX_LEN);
                 strcpy(path[(*pcnt)++], argv[i]);
-            } else {
-                ops[(*ocnt)] = (char *)malloc(sizeof(char) * op_max_len);
+            } else { // 操作符
+                ops[(*ocnt)] = (char *)malloc(sizeof(char) * OP_MAX_LEN);
                 strcpy(ops[(*ocnt)++], argv[i]);
             }
         }
@@ -69,9 +69,9 @@ void anlz_args(int argc, char **argv,
 }
 
 
-void display_ml(char **path, byte pcnt,
+void display_ml(char **path, int pcnt,
                              char **ops, 
-                             byte ocnt, 
+                             int ocnt, 
                              bool *has_ops)
 {
     for (int i = 0; i < pcnt; ++i) {
@@ -82,7 +82,7 @@ void display_ml(char **path, byte pcnt,
             printf("%s\n", fullpath);
             printf("\033[38;5;7m");
         }
-        byte cnt = 0;
+        int cnt = 0;
 
         // invalid
         if (has_ops[6]) {
@@ -94,41 +94,54 @@ void display_ml(char **path, byte pcnt,
         // -h
         if (has_ops[5]) usage(0);
 
-        const byte file_list_size = 255;
-        const byte file_name_length = 100;
-        char **file_list = (char **)malloc(sizeof(char *) * file_list_size);
+        char **file_list = (char **)malloc(sizeof(char *) * FILE_LIST_SIZE);
 
         // -A（优先级高于-a）（-a高于默认）
-        void (*func)(const char *path, byte *cnt,
-                                    char **file_list,
-                                    const byte file_name_length);
+        int (*func)(const char *path, int *cnt,
+                                      char **file_list,
+                                      int *layout);
         if (has_ops[1]) func = almost_all;
         else if (has_ops[0]) func = all;
         else func = normal;
 
-        (*func)(path[i], &cnt, file_list, file_name_length);
+        // 一行最多文件或目录个数
+        int layout[LINE_MAXN];
+        int line_maxn = (*func)(path[i], &cnt, file_list, layout);
 
         // -f
         bool **color_files = color_file(file_list, path[i], cnt);
         char **fmt_files = (char **)malloc(sizeof(char *) * cnt);
-        for (byte j = 0; j < cnt; ++j)
-            fmt_files[j] = (char *)malloc(sizeof(char) * 1);
+        for (int j = 0; j < cnt; ++j) {
+            fmt_files[j] = (char *)malloc(sizeof(char) * 2);
+            fmt_files[j][0] = fmt_files[j][1] = '\0';
+        }
 
         if (has_ops[3])
             format(file_list, path[i], fmt_files, cnt);
 
+        char tmp1[100];
+        strcpy(tmp1, fullpath);
+        strcat(tmp1, "/");
+        ctime_sort(cnt, tmp1, file_list);
+
         // -l
         if (has_ops[2]) {
-            for (byte j = 0; j < cnt; ++j) {
+            int fmt_lens[3] = {0, 0, 0};
+            char temp[100];
+            strcpy(temp, fullpath);
+            strcat(temp, "/");
+            get_lens_of_ower_and_grp(temp, file_list, cnt, fmt_lens); 
+            for (int j = 0; j < cnt; ++j) {
                 char tmp[100];
                 strcpy(tmp, fullpath);
                 strcat(tmp, "/");
                 strcat(tmp, file_list[j]);
-                long_list(tmp, color_files[j], fmt_files[j]);
+                long_list(tmp, color_files[j], fmt_files[j], fmt_lens);
             }
         } else {
+            int line_length_cnt = 0;
             for (int j = 0; j < cnt; ++j) {
-                if ((j + 1) % 7 == 0)
+                if (0 == j % line_maxn && 0 != j)
                     putchar('\n');
                 // colorful file
                 if (color_files[j][0]) // 文件夹
@@ -142,7 +155,8 @@ void display_ml(char **path, byte pcnt,
                 else
                     printf("\033[38;5;56m");
                 strcat(file_list[j], fmt_files[j]);
-                printf(" %s ", file_list[j]);
+
+                printf("%-*s", layout[j % line_maxn] + 3, file_list[j]);
             }
             putchar('\n');
         }
@@ -162,11 +176,11 @@ void display_ml(char **path, byte pcnt,
 }
 
 
-static bool **color_file(char **file_list, const char *full_path, byte cnt)
+static bool **color_file(char **file_list, const char *full_path, int cnt)
 {
     bool **color_files = (bool **)malloc(sizeof(bool *) * cnt);
     char *realp = realpath(full_path, NULL);
-    for (byte i = 0; i < cnt; ++i) {
+    for (int i = 0; i < cnt; ++i) {
         char tmp[100];
         strcpy(tmp, realp);
         strcat(tmp, "/");

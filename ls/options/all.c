@@ -9,68 +9,126 @@
 #include <assert.h>
 
 #include "all.h"
+#include "../macro.h"
 
 
 static inline DIR *open_dir(const char *path);
 static inline void close_dir(DIR *dir);
 
 // 默认
-void normal(const char *path, byte *cnt,
-                              char **file_list,
-                              const byte file_name_length)
+int normal(const char *path, int *cnt,
+                             char **file_list,
+                             int *layout)
 {
+    int sum_length = 0, line_maxn;
+    int mtx[256];
     DIR *dir = open_dir(path);
 
-    byte i = 0;
+    int i = 0;
     struct dirent *d = NULL;
     while ((d = readdir(dir)) != NULL) {
         if ('.' != d->d_name[0]) {
-            file_list[i] = (char *)malloc(sizeof(char) * file_name_length);
+            file_list[i] = (char *)malloc(sizeof(char) * FILE_NAME_LENGTH);
             strcpy(file_list[i++], d->d_name);
-            ++(*cnt);
+            mtx[(*cnt)] = (int)(strlen(d->d_name));
+            sum_length += mtx[(*cnt)++];
+        }
+    }
+    int rows = (sum_length / LINE_MAX_LENGTH) + 1;
+    if (0 == (*cnt) % rows)
+        line_maxn = (*cnt) / rows;
+    else 
+        line_maxn = (*cnt) / rows + 1;
+
+    for (int i = 0; i < line_maxn; ++i) {
+        layout[i] = 0;
+        for (int j = 0; j < rows; ++j) {
+            if (layout[i] < mtx[j * line_maxn + i] &&
+                    (j * line_maxn + i) < (*cnt))
+                layout[i] = mtx[j * line_maxn + i];
         }
     }
 
     close_dir(dir);
+
+    return line_maxn;
 }
 
 // -a
-void all(const char *path, byte *cnt,
-                           char **file_list,
-                           const byte file_name_length)
+int all(const char *path, int *cnt,
+                          char **file_list,
+                          int *layout)
 {
+    int sum_length = 0, line_maxn;
+    int mtx[255];
     DIR *dir = open_dir(path);
 
-    byte i = 0;
+    int i = 0;
     struct dirent *d = NULL;
     while ((d = readdir(dir)) != NULL) {
-        file_list[i] = (char *)malloc(sizeof(char) * file_name_length);
+        file_list[i] = (char *)malloc(sizeof(char) * FILE_NAME_LENGTH);
         strcpy(file_list[i++], d->d_name);
-        ++(*cnt);
+        mtx[(*cnt)] = strlen(d->d_name);
+        sum_length += mtx[(*cnt)++];
+    }
+    int rows = (sum_length / LINE_MAX_LENGTH) + 1;
+    if (0 == (*cnt) % rows)
+        line_maxn = (*cnt) / rows;
+    else 
+        line_maxn = (*cnt) / rows + 1;
+
+    for (int i = 0; i < line_maxn; ++i) {
+        layout[i] = 0;
+        for (int j = 0; j < rows; ++j) {
+            if (layout[i] < mtx[j * line_maxn + i] &&
+                    (j * line_maxn + i) < (*cnt))
+                layout[i] = mtx[j * line_maxn + i];
+        }
     }
 
     close_dir(dir);
+
+    return line_maxn;
 }
 
 // -A
-void almost_all(const char *path, byte *cnt,
-                           char **file_list,
-                           const byte file_name_length)
+int almost_all(const char *path, int *cnt,
+                                 char **file_list,
+                                 int *layout)
 {
+    int sum_length = 0, line_maxn;
+    int mtx[255];
     DIR *dir = open_dir(path);
 
-    byte i = 0;
+    int i = 0;
     struct dirent *d = NULL;
     while ((d = readdir(dir)) != NULL) {
         if (0 != strcmp(".", d->d_name) &&
                 0 != strcmp("..", d->d_name)) {
-            file_list[i] = (char *)malloc(sizeof(char) * file_name_length);
+            file_list[i] = (char *)malloc(sizeof(char) * FILE_NAME_LENGTH);
             strcpy(file_list[i++], d->d_name);
-            ++(*cnt);
+            mtx[(*cnt)] = strlen(d->d_name);
+            sum_length += mtx[(*cnt)++];
+        }
+    }
+    int rows = (sum_length / LINE_MAX_LENGTH) + 1;
+    if (0 == (*cnt) % rows)
+        line_maxn = (*cnt) / rows;
+    else 
+        line_maxn = (*cnt) / rows + 1;
+
+    for (int i = 0; i < line_maxn; ++i) {
+        layout[i] = 0;
+        for (int j = 0; j < rows; ++j) {
+            if (layout[i] < mtx[j * line_maxn + i] &&
+                    (j * line_maxn + i) < (*cnt))
+                layout[i] = mtx[j * line_maxn + i];
         }
     }
 
     close_dir(dir);
+
+    return line_maxn;
 }
 
 

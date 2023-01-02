@@ -1,17 +1,15 @@
 #ifndef TOOLS_H_
 #define TOOLS_H_
 
-#include "alias.h" 
-
 void anlz_args(int argc, char **argv,
                          char **path,
                          char **ops,
-                         byte *pcnt, byte *ocnt,
+                         int *pcnt, int *ocnt,
                          bool *has_ops);
 
-void display_ml(char **path, byte pcnt,
+void display_ml(char **path, int pcnt,
                              char **ops, 
-                             byte ocnt, 
+                             int ocnt, 
                              bool *has_ops);
 
 #endif
