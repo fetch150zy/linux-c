@@ -35,15 +35,11 @@ void format(char **file_list, const char *full_path,
             strcpy(fmt_files[i], "|");
             break;
         default:
+            if ('x' == get_mod(tmp)[2] || 
+                'x' == get_mod(tmp)[5] ||
+                 'x' == get_mod(tmp)[8])
+                strcpy(fmt_files[i], "*");
             break;
         }
-
-        // 可执行文件不能通过文件来兴来判断，只能通过文件权限
-        if ('d' != get_type(tmp) && 
-                ('x' == get_mod(tmp)[2] || 
-                 'x' == get_mod(tmp)[5] ||
-                 'x' == get_mod(tmp)[8]))
-            strcpy(fmt_files[i], "*");
-        
     }
 }
