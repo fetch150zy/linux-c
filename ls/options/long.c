@@ -11,33 +11,39 @@
 #include <stdbool.h>
 
 #include "long.h"
+#include "../macro.h"
 
 
 static char *uid_to_name(uid_t uid);
 static char *gid_to_name(gid_t gid);
 
-void get_lens_of_ower_and_grp(char *fullpath, char **file_list, int cnt, int *fmt_lens)
+void get_fmt_lens(const char *real_path, const char * const *file_list,
+                                         int cnt, int *fmt_lens)
 {
     for (int i = 0; i < cnt; ++i) {
-        char tmp[100];
-        strcpy(tmp, fullpath);
+        char tmp[PATH_MAX_LEN + FILE_NAME_LEN];
+        strcpy(tmp, real_path);
         strcat(tmp, file_list[i]);
+
         char *ower = get_ower(tmp);
         if (fmt_lens[0] < strlen(ower))
             fmt_lens[0] = strlen(ower);
+            
         char *grp = get_grp(tmp);
         if (fmt_lens[1] < strlen(grp))
             fmt_lens[1] = strlen(grp);
+
         unsigned long fsize = get_file_size(tmp) / 1024;
-        char f[16];
-        sprintf(f, "%d", fsize);
-        if (fmt_lens[2] < strlen(f))
-            fmt_lens[2] = strlen(f);
+        char fmt[16];
+        sprintf(fmt, "%d", fsize);
+        if (fmt_lens[2] < strlen(fmt))
+            fmt_lens[2] = strlen(fmt);
     }
 }
 
-void long_list(const char *full_path, bool *color_file,
-                                      char *fmt_file, int *fmt_lens)
+void long_list(const char *full_path, const bool *color_file,
+                                      const char *fmt_file, 
+                                      const int *fmt_lens)
 {
     char file_type = get_type(full_path);
     printf("\033[38;5;7m");
@@ -97,10 +103,8 @@ void long_list(const char *full_path, bool *color_file,
     strcat(file, fmt_file);
     printf(" %s\n", file);
 
-    free(format);
-    format = NULL;
-    free(file_mod);
-    file_mod = NULL;
+    free(file_mod), file_mod = NULL;
+    free(format), format = NULL;
 }
 
 // 获取文件种类
@@ -109,7 +113,7 @@ char get_type(const char *full_path)
     struct stat myst;
     int ret = lstat(full_path, &myst);
     if (-1 == ret) {
-        perror("stat");
+        perror("lstat(): long.c get_type()");
         return '\0';
     }
 
@@ -140,7 +144,7 @@ char get_type(const char *full_path)
         break;
     default:
         perror("Unknown type");
-        assert(0);
+        // assert(0);
         break;
     }
 
@@ -153,7 +157,7 @@ char* get_mod(const char *full_path)
     struct stat myst;
     int ret = stat(full_path, &myst);
     if (-1 == ret) {
-        perror("stat");
+        perror("stat(): long.c get_mod()");
         return NULL;
     }
     const int mode_size = 10;
@@ -178,7 +182,7 @@ char *get_ower(const char *full_path)
     struct stat myst;
     int ret = stat(full_path, &myst);
     if (-1 == ret) {
-        perror("stat");
+        perror("stat(): long.c get_ower()");
         return NULL;
     }
 
@@ -191,7 +195,7 @@ char *get_grp(const char *full_path)
     struct stat myst;
     int ret = stat(full_path, &myst);
     if (-1 == ret) {
-        perror("stat");
+        perror("stat(): long.c get_grp()");
         return NULL;
     }
 
@@ -204,7 +208,7 @@ unsigned long get_file_size(const char *full_path)
     struct stat myst;
     int ret = stat(full_path, &myst);
     if (-1 == ret) {
-        perror("stat");
+        perror("stat(): long.c get_file_size()");
         return -1;
     }
     return myst.st_size;
@@ -216,7 +220,7 @@ char *get_time(const char *full_path)
     struct stat myst;
     int ret = stat(full_path, &myst);
     if (-1 == ret) {
-        perror("stat");
+        perror("stat(): long.c get_time()");
         return NULL;
     }
     const char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri",
@@ -239,7 +243,7 @@ static char *uid_to_name(uid_t uid)
 {
     struct passwd * pw = getpwuid(uid);
     if (NULL == pw) {
-        perror("passwd");
+        perror("getpwuid()");
         return NULL;
     }
     return pw->pw_name;
@@ -250,7 +254,7 @@ static char *gid_to_name(gid_t gid)
 {
     struct group *grp = getgrgid(gid);
     if (NULL == grp) {
-        perror("group");
+        perror("getgrgid()");
         return NULL;
     }
     return grp->gr_name;

@@ -32,10 +32,10 @@ void usage(int status)
         "-A, --almost-all",
         "-l, --long",
         "-f, --format",
-        "-t, --mtsort",
+        "-t, --ctsort",
         "-h, --help"
     };
-    char ops_detail[SUPPORT_OPS_NUM][HELP_DOC_INFO_LENS] = {
+    char ops_detail[SUPPORT_OPS_NUM][HELP_DOC_INFO_LEN] = {
         "Do not ignore entries starting with .",
         "Do not list implied . and ..",
         "Display extended file metadata as a table",
