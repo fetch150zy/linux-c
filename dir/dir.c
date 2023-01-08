@@ -1,7 +1,4 @@
-#include <sys/types.h>
 #include <dirent.h>
-#include <unistd.h>
-
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
@@ -10,8 +7,6 @@
 #include <stdlib.h>
 
 extern int errno;
-
-typedef unsigned char int;
 
 char **dir(const char *path, const char *args, int *cnt);
 

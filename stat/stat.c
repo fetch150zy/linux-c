@@ -1,13 +1,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pwd.h> // struct passwd
 #include <grp.h> // struct group
 #include <time.h>
-
-typedef unsigned char int;
 
 // int stat(const char *pathname, struct stat *buf);
 // int lstat(const char *pathname, struct stat *buf);

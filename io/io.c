@@ -11,8 +11,6 @@
 extern int errno;
 
 
-typedef unsigned char int;
-
 #define buf_size 4096
 
 

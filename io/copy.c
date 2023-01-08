@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-typedef unsigned char int;
 
 int copy_file(const char *src_file, const char *dest_file);
 

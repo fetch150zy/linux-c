@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <fcntl.h>
-#include <unistd.h>
 
 extern int errno;
 
