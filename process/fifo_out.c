@@ -37,7 +37,7 @@ void fifo_out(void)
         perror("open");
         _exit(0);
     }
-    puts("opne pipe with write_only sucessfully");
+    puts("open pipe with write_only sucessfully");
 
     // write to pipe
     for (int i = 0; i < 100; ++i) {
