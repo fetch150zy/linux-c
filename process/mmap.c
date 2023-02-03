@@ -10,9 +10,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "../include/macro.h"
+#include "../utils/utils.h"
 
 #define FOURK 4096
+
+static const int munmap_failed = 1;
 
 // cretae mmap
 //void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
@@ -47,7 +49,7 @@ void mem_map(void)
         handle_error("fork");
     }
 
-    munmap(addr, FOURK);
     close(fd);
+    exit_if(-1 == munmap(addr, FOURK), munmap_failed, stderr, "munmap failed\n")
 }
 

@@ -29,7 +29,7 @@ int main(void)
     chdir("/home/fetch150zy");
 
     // set umask
-    umask(022);
+    umask(0022);
 
     // redirect fd about terminal
     int fd = open("/dev/null", O_RDWR);
