@@ -8,5 +8,8 @@
                 fprintf(stream, format, ##args); \
                 exit(failed_ret); \
             }
+#define handle_error(msg) \
+           do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
 
 #endif
