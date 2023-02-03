@@ -6,16 +6,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../utils/utils.h"
+
 extern int errno;
+
+static const int usage_err = 1;
+static const int opendir_failed = 2;
+static const int readdir_failed = 4;
+static const int closedir_failed = 8;
 
 char **dir(const char *path, const char *args, int *cnt);
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        perror("usage: ./dir path");
-        return -1;
-    }
+    exit_if(argc < 2, usage_err, stderr, "usage: %s <path>", argv[0])
 
     const char *path = argv[1];
     char **file_list = NULL;
@@ -42,11 +46,7 @@ int main(int argc, char **argv)
 char **dir(const char *path, const char *args, int *cnt)
 {
     DIR *dir = opendir(path);
-    if (NULL == dir) {
-        fprintf(stderr, "cause by opendir(): %s\n",
-                    strerror(errno));
-        assert(0);
-    }
+    exit_if(NULL == dir, opendir_failed, stderr, "opendir failed\n")
 
     const int FILE_LIST_SIZE = 255;
     const int FILE_NAME_LENGTH = 20;
@@ -69,12 +69,7 @@ char **dir(const char *path, const char *args, int *cnt)
             ++(*cnt);
         }
     }
-    int err_ = closedir(dir);
-    if (-1 == err_) {
-        fprintf(stderr, "cause by closedir(): %s\n",
-                    strerror(errno));
-        assert(0);
-    }
+    exit_if(-1 == closedir(dir), closedir_failed, stderr, "closedir failed\n")
 
     return file_list;
 }

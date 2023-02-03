@@ -1,7 +1,3 @@
-//
-// Created by fetch150zy on 1/8/23.
-//
-
 #include <dirent.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,26 +6,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../utils/utils.h"
+
 //int scandir(const char *drip, struct dirent ***namelist,
 //        int (*filter)(const struct dirent *),
 //        int (*compar)(const struct dirent **, const struct dirent **));
 
 
-int is_png(const struct dirent *dp);
+static const int usage_failed = 1;
+static const int scandir_failed = 2;
 
-bool scan_dir(const char *dir_name);
+static int is_png(const struct dirent *dp);
+static bool scan_dir(const char *dir_name);
 
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("usage: ./scandir <path>\n");
-        return -1;
-    }
+    exit_if(argc < 2, usage_failed, stderr, "usage: %s <path>", argv[0])
 
     bool ret = scan_dir(argv[1]);
     if (!ret)
-        return -1;
+        return scandir_failed;
 
     return 0;
 }
