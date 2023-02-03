@@ -6,16 +6,25 @@
 #include <grp.h> // struct group
 #include <time.h>
 
+#include "../utils/utils.h"
+
 // int stat(const char *pathname, struct stat *buf);
 // int lstat(const char *pathname, struct stat *buf);
 
 
-char get_type(const char *file_name);
-char* get_mod(const char *file_name);
-char *get_ower(const char *file_name);
-char *get_grp(const char *file_name);
-u_int32_t get_file_size(const char *file_name);
-char *get_time(const char *file_name);
+static const int usage_err = 1;
+
+static const int getpwuid_failed = 2;
+static const int getgrgid_failed = 4;
+
+static const int stat_failed = 8;
+
+static char get_type(const char *file_name);
+static char* get_mod(const char *file_name);
+static char *get_ower(const char *file_name);
+static char *get_grp(const char *file_name);
+static u_int32_t get_file_size(const char *file_name);
+static char *get_time(const char *file_name);
 
 
 static char *uid_to_name(uid_t uid);
@@ -24,10 +33,7 @@ static char *gid_to_name(gid_t gid);
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("usage: ./stat filename\n");
-        return -1;
-    }
+    exit_if(argc < 2, usage_err, stderr, "usage: %s <file>", argv[0])
     const char *file_name = argv[1];
 
     char file_type = get_type(file_name);
@@ -59,14 +65,11 @@ int main(int argc, char **argv)
 }
 
 
-char get_type(const char *file_name)
+static char get_type(const char *file_name)
 {
     struct stat myst;
     int ret = stat(file_name, &myst);
-    if (-1 == ret) {
-        perror("stat");
-        return '\0';
-    }
+    exit_if(-1 == ret, stat_failed, stderr, "stat failed\n")
 
     char file_type;
     if(S_ISREG(myst.st_mode))
@@ -89,14 +92,11 @@ char get_type(const char *file_name)
     return file_type;
 }
 
-char* get_mod(const char *file_name)
+static char* get_mod(const char *file_name)
 {
     struct stat myst;
     int ret = stat(file_name, &myst);
-    if (-1 == ret) {
-        perror("stat");
-        return NULL;
-    }
+    exit_if(-1 == ret, stat_failed, stderr, "stat failed\n")
     const int mode_size = 10;
     char *file_mod = (char *)malloc(sizeof(char) * mode_size);
     const char mode[] = "rwx";
@@ -113,49 +113,35 @@ char* get_mod(const char *file_name)
     return file_mod;
 }
 
-char *get_ower(const char *file_name)
+static char *get_ower(const char *file_name)
 {
     struct stat myst;
     int ret = stat(file_name, &myst);
-    if (-1 == ret) {
-        perror("stat");
-        return NULL;
-    }
-
+    exit_if(-1 == ret, stat_failed, stderr, "stat failed\n")
     return uid_to_name(myst.st_uid);
 }
 
-char *get_grp(const char *file_name)
+static char *get_grp(const char *file_name)
 {
     struct stat myst;
     int ret = stat(file_name, &myst);
-    if (-1 == ret) {
-        perror("stat");
-        return NULL;
-    }
-
+    exit_if(-1 == ret, stat_failed, stderr, "stat failed\n")
     return gid_to_name(myst.st_gid);
 }
 
-u_int32_t get_file_size(const char *file_name)
+static u_int32_t get_file_size(const char *file_name)
 {
     struct stat myst;
     int ret = stat(file_name, &myst);
-    if (-1 == ret) {
-        perror("stat");
-        return -1;
-    }
+    exit_if(-1 == ret, stat_failed, stderr, "stat failed\n")
     return (u_int32_t)myst.st_size;
 }
 
-char *get_time(const char *file_name)
+static char *get_time(const char *file_name)
 {
     struct stat myst;
     int ret = stat(file_name, &myst);
-    if (-1 == ret) {
-        perror("stat");
-        return NULL;
-    }
+    exit_if(-1 == ret, stat_failed, stderr, "stat failed\n")
     const char *wday[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri",
                             "Sat"};
     const char *ymoth[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -171,22 +157,16 @@ char *get_time(const char *file_name)
     return format;
 }
 
-static char *uid_to_name(uid_t uid)
+static inline char *uid_to_name(uid_t uid)
 {
     struct passwd * pw = getpwuid(uid);
-    if (NULL == pw) {
-        perror("passwd");
-        return NULL;
-    }
+    exit_if(NULL == pw, getpwuid_failed, stderr, "getpwuid failed\n")
     return pw->pw_name;
 }
 
-static char *gid_to_name(gid_t gid)
+static inline char *gid_to_name(gid_t gid)
 {
     struct group *grp = getgrgid(gid);
-    if (NULL == grp) {
-        perror("group");
-        return NULL;
-    }
+    exit_if(NULL == grp, getgrgid_failed, stderr, "getgrgid failed\n")
     return grp->gr_name;
 }
